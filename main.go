@@ -38,7 +38,7 @@ func test_mnemonic() {
 func test2() {
 	mne := "august human human affair mechanic night verb metal embark marine orient million"
 
-	wallet, err := NewFromMnemonic(mne)
+	wallet, err := NewFromMnemonic(mne, "")
 	if err != nil {
 		log.Panic(err)
 	}
@@ -62,7 +62,7 @@ func test2() {
 
 func test_sign() {
 	mnemonic := "august human human affair mechanic night verb metal embark marine orient million"
-	wallet, err := NewFromMnemonic(mnemonic)
+	wallet, err := NewFromMnemonic(mnemonic, "")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,43 +97,45 @@ func test_sendTransaction() {
 
 	defer cli.Close()
 
-	mnemonic := "august human human affair mechanic night verb metal embark marine orient million"
-	wallet, err := NewFromMnemonic(mnemonic)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// mnemonic := "august human human affair mechanic night verb metal embark marine orient million"
+	// wallet, err := NewFromMnemonic(mnemonic, "")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	path := MustParseDerivationPath("m/44'/60'/0'/0/1") //第2个账户地址
-	account, err := wallet.Derive(path, true)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// path := MustParseDerivationPath("m/44'/60'/0'/0/1") //第2个账户地址
+	// account, err := wallet.Derive(path, true)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	nonce := uint64(2)
-	value := big.NewInt(3000000000000000000)
-	toAddress := common.HexToAddress("0x44f4CD617655104649C1b866D20D5EAE198deD38")
-	gasLimit := uint64(21000)
-	gasPrice := big.NewInt(21000000000)
-	var data []byte
+	// nonce := uint64(3)
+	// value := big.NewInt(3000000000000000000)
+	// toAddress := common.HexToAddress("0x44f4CD617655104649C1b866D20D5EAE198deD38")
+	// gasLimit := uint64(21000)
+	// gasPrice := big.NewInt(21000000000)
+	// var data []byte
 
-	tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
-	signedTx, err := wallet.SignTx(account, tx, nil)
-	if err != nil {
-		log.Fatal("failed to signed tx:", err)
-	}
+	// tx := types.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, data)
+	// signedTx, err := wallet.SignTx(account, tx, nil)
+	// if err != nil {
+	// 	log.Fatal("failed to signed tx:", err)
+	// }
 
-	err = cli.SendTransaction(context.Background(), signedTx)
-	if err != nil {
-		log.Panic("failed to send transaction:", err)
-	}
-
-	// bl, err := cli.BalanceAt(cli, toAddress, big.NewInt(0))
-	// fmt.Println(bl.Int64(), err)
+	// err = cli.SendTransaction(context.Background(), signedTx)
+	// if err != nil {
+	// 	log.Panic("failed to send transaction:", err)
+	// }
+	toAddress := common.HexToAddress("0x47E45e6E5336aE450A8aB1657CFCfb210b2661D6")
+	bl, err := cli.BalanceAt(context.Background(), toAddress, big.NewInt(4))
+	fmt.Println(bl.Int64(), bl.Uint64(), err)
 }
 
 func main() {
 	//test_mnemonic()
-	// test2()
-	// test_sign()
+	test2()
+	//test_sign()
 	test_sendTransaction()
+	//cli := &CLI{"yekai", "http://localhost:8545"}
+	//cli.Run()
 }
