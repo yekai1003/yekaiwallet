@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package utils
 
 import (
 	"crypto/rand"
@@ -29,7 +29,7 @@ func NewRandom() UUID {
 	return uuid
 }
 
-func writeKeyFile(file string, content []byte) error {
+func WriteKeyFile(file string, content []byte) error {
 	// Create the keystore directory with appropriate permissions
 	// in case it is not present yet.
 	const dirPerm = 0700

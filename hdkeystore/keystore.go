@@ -1,4 +1,4 @@
-package main
+package hdkeystore
 
 import (
 	"crypto/ecdsa"
@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"math/big"
 	"path/filepath"
+
+	"yekaiwallet/util"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -18,11 +20,11 @@ type HDkeyStore struct {
 	KeysDirPath     string
 	ScryptN         int
 	ScryptP         int
-	privateKeyECDSA *ecdsa.PrivateKey
+	PrivateKeyECDSA *ecdsa.PrivateKey
 }
 
 func NewKeyFromECDSA(privateKeyECDSA *ecdsa.PrivateKey) *keystore.Key {
-	id := NewRandom()
+	id := utils.NewRandom()
 	key := &keystore.Key{
 		Id:         []byte(id),
 		Address:    crypto.PubkeyToAddress(privateKeyECDSA.PublicKey),
@@ -31,21 +33,25 @@ func NewKeyFromECDSA(privateKeyECDSA *ecdsa.PrivateKey) *keystore.Key {
 	return key
 }
 
-func NewHDKeyStore(dirPath string) *HDkeyStore {
+func NewHDKeyStore(dirPath string, privateKeyECDSA *ecdsa.PrivateKey) *HDkeyStore {
 	return &HDkeyStore{
 		KeysDirPath:     dirPath,
 		ScryptN:         keystore.LightScryptN,
 		ScryptP:         keystore.LightScryptP,
-		privateKeyECDSA: nil,
+		PrivateKeyECDSA: privateKeyECDSA,
 	}
 }
 
-func (ks *HDkeyStore) StoreKey(filename string, key *keystore.Key, auth string) error {
+func (ks *HDkeyStore) StoreKey(address, auth string) error {
+
+	key := NewKeyFromECDSA(ks.PrivateKeyECDSA)
+	filename := ks.JoinPath(address)
+
 	keyjson, err := keystore.EncryptKey(key, auth, ks.ScryptN, ks.ScryptP)
 	if err != nil {
 		return err
 	}
-	return writeKeyFile(filename, keyjson)
+	return utils.WriteKeyFile(filename, keyjson)
 }
 
 func (ks *HDkeyStore) JoinPath(filename string) string {
@@ -71,7 +77,7 @@ func (ks *HDkeyStore) GetKey(addr common.Address, filename, auth string) (*keyst
 		return nil, fmt.Errorf("key content mismatch: have account %x, want %x", key.Address, addr)
 	}
 
-	ks.privateKeyECDSA = key.PrivateKey
+	ks.PrivateKeyECDSA = key.PrivateKey
 	return key, nil
 }
 
@@ -80,7 +86,7 @@ func (ks *HDkeyStore) SignTx(account accounts.Account, tx *types.Transaction, ch
 
 	fmt.Printf("%+v\n", ks)
 	// Sign the transaction and verify the sender to avoid hardware fault surprises
-	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, ks.privateKeyECDSA)
+	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, ks.PrivateKeyECDSA)
 	if err != nil {
 		return nil, err
 	}
