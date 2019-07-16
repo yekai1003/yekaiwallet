@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"yekaiwallet/hdkeystore"
 	"yekaiwallet/hdwallet"
+	"yekaiwallet/util"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -30,6 +32,10 @@ func NewCLI(path, url string) *CLI {
 func (cli *CLI) Usage() {
 	fmt.Println("./yekaiwallet createwallet -name ACCOUNT_NAME -- for create a new wallet")
 	fmt.Println("./yekaiwallet balance -name ACCOUNT_NAME -- for get ether balance of a address")
+	fmt.Println("./yekaiwallet transfer -name ACCOUNT_NAME -toaddress ADDRESS -value VALUE -- for send ether to ADDRESS")
+	fmt.Println("./yekaiwallet addtoken -addr CONTRACT_ADDR -- for send ether to ADDRESS")
+	fmt.Println("./yekaiwallet tokenbalance -name ACCOUNT_NAME -- for get token balances")
+	fmt.Println("./yekaiwallet sendtoken -name ACCOUNT_NAME -tokenname SYMBOL -toaddress ADDRESS -value VALUE -- for send tokens to ADDRESS ")
 }
 
 func (cli *CLI) validateArgs() {
@@ -50,6 +56,10 @@ func (cli *CLI) Run() {
 	//addressStr := balancecmd.String("address", "", "ADDRESS")
 	ba_account := balancecmd.String("name", "yekai", "ACCOUNT_NAME")
 
+	//addtoken
+	addtokencmd := flag.NewFlagSet("addtoken", flag.ExitOnError)
+	//addtokencmd_addr := addtokencmd.String("addr", "", "CONTRACT_ADDR")
+
 	switch os.Args[1] {
 	case "createwallet":
 		err := cwcmd.Parse(os.Args[2:])
@@ -60,6 +70,11 @@ func (cli *CLI) Run() {
 		err := balancecmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic("failed to Parse balancecmd params:", err)
+		}
+	case "addtoken":
+		err := addtokencmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic("failed to Parse addtokencmd params:", err)
 		}
 	default:
 		cli.Usage()
@@ -84,6 +99,10 @@ func (cli *CLI) Run() {
 	if balancecmd.Parsed() {
 		fmt.Println("call get balance of accouname is ", *ba_account)
 		cli.getBalances(*ba_account)
+	}
+
+	if addtokencmd.Parsed() {
+		cli.addToken()
 	}
 
 }
@@ -116,6 +135,23 @@ func (cli *CLI) getBalances(name string) {
 		//fmt.Printf("The balance of %s is %s\n", info.Name(), cli.getBalance(info.Name(), rclient))
 		fmt.Printf("The balance of %s is %v\n", info.Name(), cli.getBalance("0x29155963f8632EaeD108f6A81eA65c75C62e77c0", rclient))
 	}
+}
+
+type TokenConfig struct {
+	Name string
+	Addr string
+}
+
+func (cli *CLI) addToken() {
+	//形成一个数组，然后存储到文件中:json
+	//tokens := make([]TokenConfig, 0)
+	tokens := []TokenConfig{}
+	token := TokenConfig{"ykc", "0xb96a1f071727692e09acd337c8273a39398c0c70"}
+	tokens = append(tokens, token)
+	fmt.Println(tokens)
+	data, _ := json.Marshal(tokens)
+	utils.WriteKeyFile("tokens.json", data)
+
 }
 
 func hex2bigInt(hex string) *big.Int {
