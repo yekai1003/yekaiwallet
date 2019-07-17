@@ -9,7 +9,6 @@ import (
 
 	"yekaiwallet/util"
 
-	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -82,7 +81,7 @@ func (ks *HDkeyStore) GetKey(addr common.Address, filename, auth string) (*keyst
 }
 
 // SignTx implements accounts.Wallet, which allows the account to sign an Ethereum transaction.
-func (ks *HDkeyStore) SignTx(account accounts.Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
+func (ks *HDkeyStore) SignTx(account common.Address, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error) {
 
 	fmt.Printf("%+v\n", ks)
 	// Sign the transaction and verify the sender to avoid hardware fault surprises
@@ -97,8 +96,8 @@ func (ks *HDkeyStore) SignTx(account accounts.Account, tx *types.Transaction, ch
 	}
 
 	sender := msg.From()
-	if sender != account.Address {
-		return nil, fmt.Errorf("signer mismatch: expected %s, got %s", account.Address.Hex(), sender.Hex())
+	if sender != account {
+		return nil, fmt.Errorf("signer mismatch: expected %s, got %s", account.Hex(), sender.Hex())
 	}
 
 	return signedTx, nil

@@ -243,7 +243,7 @@ func test_login_keystore(addr string) {
 		},
 	}
 
-	signedTx, err := ks.SignTx(account, tx, nil)
+	signedTx, err := ks.SignTx(account.Address, tx, nil)
 	if err != nil {
 		log.Fatal("failed to signed tx:", err)
 	}
