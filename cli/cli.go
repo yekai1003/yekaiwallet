@@ -63,10 +63,10 @@ func (cli *CLI) validateArgs() {
 func (cli *CLI) Run() {
 	cli.validateArgs()
 
-	cwcmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
+	createwalletcmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
 	balancecmd := flag.NewFlagSet("balance", flag.ExitOnError)
 
-	accountName := cwcmd.String("name", "yekai", "ACCOUNT_NAME")
+	createwalletcmd_acct := createwalletcmd.String("name", "yekai", "ACCOUNT_NAME")
 
 	//addressStr := balancecmd.String("address", "", "ADDRESS")
 	ba_account := balancecmd.String("name", "yekai", "ACCOUNT_NAME")
@@ -94,7 +94,7 @@ func (cli *CLI) Run() {
 
 	switch os.Args[1] {
 	case "createwallet":
-		err := cwcmd.Parse(os.Args[2:])
+		err := createwalletcmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic("failed to Parse createwallet params:", err)
 		}
@@ -128,9 +128,9 @@ func (cli *CLI) Run() {
 		os.Exit(1)
 	}
 
-	if cwcmd.Parsed() {
+	if createwalletcmd.Parsed() {
 
-		if !cli.checkPath(*accountName) {
+		if !cli.checkPath(*createwalletcmd_acct) {
 			fmt.Println("the keystore director is not null,you can not create wallet!")
 			os.Exit(1)
 		}
@@ -141,7 +141,7 @@ func (cli *CLI) Run() {
 			log.Panic("failed to get your password:", err)
 		}
 
-		cli.CreateWallet(*accountName, string(pass))
+		cli.CreateWallet(*createwalletcmd_acct, string(pass))
 	}
 
 	if balancecmd.Parsed() {
@@ -188,6 +188,7 @@ func (cli *CLI) Run() {
 }
 
 func (cli *CLI) Transfer(acct_name, toaddr string, value int64) {
+	//获得转出账户地址
 	fromaddr, err := cli.getAcctAddr(acct_name)
 	if err != nil {
 		log.Panic("failed to getAcctAddr ", err)
@@ -199,6 +200,7 @@ func (cli *CLI) Transfer(acct_name, toaddr string, value int64) {
 	}
 	defer client.Close()
 
+	//获取当前nonce值
 	nonce, err := client.NonceAt(context.Background(), common.HexToAddress(fromaddr), nil)
 	if err != nil {
 		log.Panic("failed to Transfer when NonceAt ", err)
